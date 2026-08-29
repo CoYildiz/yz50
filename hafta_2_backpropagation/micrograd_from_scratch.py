@@ -140,6 +140,11 @@ class Value:
         for node in reversed(topo):
             node.grad = 0.0
 
+
+def sigmoid(x):
+    return 1 / (1 + (-x).exp())
+
+
 # .grad değerlerini hesaplamak için finite difference yöntemi
 def local_variable():
     h = 0.001
@@ -203,6 +208,10 @@ def noron():
     o = (e - 1) / (e + 1) ; o.label = 'tanh'
     o.backward()
     draw_dot(o, filename='output/noron_tanh')
+    n.zero_grad()
+    o = n.tanh()
+    o.backward()
+    draw_dot(o,filename='output/noron_tanh_zero_grad')
     # ----
     # we should reset the grads before backward
     n.zero_grad()
@@ -210,6 +219,12 @@ def noron():
     s.label = 's'
     s.backward()
     draw_dot(s, filename='output/noron_sigmoid')
+    n.zero_grad()
+
+
+    s = sigmoid(n)
+    s.backward()
+    draw_dot(s, filename='output/noron_sigmoid_zero_grad')
 
 
 noron()
