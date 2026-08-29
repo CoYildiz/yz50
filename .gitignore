@@ -13,4 +13,4 @@ wheels/
 *.org*
 \#*#
 .zed/
-.DS_store
+.DS_Store
