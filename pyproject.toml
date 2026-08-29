@@ -1,9 +1,7 @@
 [project]
-name = "hafta-1"
+name = "tasks"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-    "matplotlib>=3.11.1",
-]
+requires-python = ">=3.12"
+dependencies = []
