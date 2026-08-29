@@ -3,6 +3,7 @@ from threading import local
 import numpy as np
 import matplotlib.pyplot as plt
 from graphviz import Digraph
+from numpy._core import ubyte
 
 # for graph visualization stuff
 def trace(root):
@@ -43,9 +44,11 @@ class Value:
         self.label = label
 
     def __repr__(self) -> str:
-        return f"Value(data={self.data}, _op={self._op}, _prev={self._prev}, label={self.label})"
+        return f"Value(data={self.data})" ###, _op={self._op}, _prev={self._prev}, label={self.label})"
 
     def __add__(self, other):
+        # for addition to integer by value
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data + other.data, (self, other), '+', label='')
         def _backward():
             self.grad += out.grad * 1.0
@@ -54,6 +57,8 @@ class Value:
         return out
 
     def __mul__(self, other):
+        # for multiplication to integer by value
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, (self, other), '*', label='')
         def _backward():
             self.grad += out.grad * other.data
@@ -61,16 +66,79 @@ class Value:
         out._backward = _backward
         return out
 
+    # reverse multiplication for error handling
+    def __rmul__(self, other):
+        return self * other
+
+
+    def __neg__(self):
+        return self * -1
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __truediv__(self, other):
+        return self * other**-1
+
     def tanh(self):
         x = self.data
         t = (math.exp(2*x) - 1)/(math.exp(2*x) + 1)
         out = Value(t, (self,), 'tanh', label='')
         def _backward():
-            self.grad = out.grad * (1 - t**2)
+            self.grad += out.grad * (1 - t**2)
         out._backward = _backward
         return out
 
 
+    def exp(self):
+        out = Value(math.exp(self.data), (self,), 'exp', label='')
+        def _backward():
+            self.grad += out.grad * math.exp(self.data)
+        out._backward = _backward
+        return out
+
+    def __pow__(self, other):
+        out = Value(self.data ** other, (self,), f'**{other}', label='')
+        def _backward():
+            self.grad += out.grad * other * self.data ** (other - 1)
+        out._backward = _backward
+        return out
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rtruediv__(self, other):
+        return other * self**-1
+
+
+    def backward(self):
+        topo = []
+        visited = set()
+
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
+        build_topo(self)
+        self.grad = 1.0
+        for node in reversed(topo):
+            node._backward()
+
+    def zero_grad(self):
+        topo = []
+        visited = set()
+
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
+        build_topo(self)
+        for node in reversed(topo):
+            node.grad = 0.0
 
 # .grad değerlerini hesaplamak için finite difference yöntemi
 def local_variable():
@@ -99,6 +167,13 @@ def local_variable():
     L2 = L.data
 
     print((L2 - L1)/h)
+    p = Value(2.0)
+    q = Value(3.0)
+    print(p * q)
+    print(p / q)
+    print(q / p)
+    print(p - 1)
+    print(q + 1)
     L.grad = 1.0
     f.grad = -2.0
     e.data = -7.0
@@ -121,21 +196,22 @@ def noron():
     x1w1 = x1 * w1; x1w1.label = 'x1w1'
     x2w2 = x2 * w2; x2w2.label = 'x2w2'
     x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1x2w2'
-    n = x1w1x2w2 + b; n.label = 'n'
-    o = n.tanh(); o.label = 'o'
-    o.grad = 1.0
-    o._backward()
-    n._backward()
-    x1w1x2w2._backward()
-    x2w2._backward()
-    x1w1._backward()
-    b._backward()
-    w2._backward()
-    w1._backward()
-    x1._backward()
-    x2._backward()
-    draw_dot(o, filename='output/noron')
+    #n = x1w1x2w2 + b; n.label = 'n'
+    n = x1w1
+    # -----
+    e = (2*n).exp(); e.label = 'e'
+    o = (e - 1) / (e + 1) ; o.label = 'tanh'
+    o.backward()
+    draw_dot(o, filename='output/noron_tanh')
+    # ----
+    # we should reset the grads before backward
+    n.zero_grad()
+    s = 1 / (1 + (-1 * n).exp())
+    s.label = 's'
+    s.backward()
+    draw_dot(s, filename='output/noron_sigmoid')
 
 
 noron()
-print(draw_dot(local_variable()))
+# graph visualization for local_variable() function
+# print(draw_dot(local_variable()))
