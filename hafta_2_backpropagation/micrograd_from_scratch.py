@@ -329,3 +329,8 @@ for k in range(30):
 draw_dot(loss, 'output/mlp_loss')
 
 print("ypred", ypred)
+
+
+# a = Value(5)
+# print("(------")
+# print(type(a.data))
