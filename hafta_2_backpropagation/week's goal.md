@@ -20,6 +20,6 @@
 - [x] Gradient'leri elle doldur: basit bir ifade, sonra `tanh` içeren bir nöron
 - [x] `backward()` metodunu yaz: ters topolojik sıra, çoklu-yol durumunda gradient toplama
 - [ ] `tanh`'ı parçala (`exp`, bölme, `pow`), `backward()`/numerical derivative/PyTorch ile üçlü doğrula
-- [ ] `Neuron`, `Layer`, `MLP` sınıflarını kur, küçük bir veri setiyle eğit
+- [x] `Neuron`, `Layer`, `MLP` sınıflarını kur, küçük bir veri setiyle eğit
 
-**Durum:** Görev 1-3 tamamlandı. Görev 4 kısmi — `tanh` ve `sigmoid`, `exp`/`pow`/bölme primitifleriyle parçalandı ve `backward()` ile doğru gradyan verdiği doğrulandı, ama numerical derivative ve PyTorch ile üçlü karşılaştırma henüz eklenmedi. Görev 5'e başlanmadı. Deadline'da elde olanla teslim edildi.
+**Durum:** Görev 1-3 tamamlandı. Görev 4 kısmi — `tanh` ve `sigmoid`, `exp`/`pow`/bölme primitifleriyle parçalandı ve `backward()` ile doğru gradyan verdiği doğrulandı; 2026-09-06'da PyTorch karşılaştırması da eklendi (`torch_test()`) ve değerler tuttu, ama sayısal türev ayağı ile üçünü yan yana basan tolerans kontrolü hâlâ eksik. Görev 5 2026-09-06'da tamamlandı: `Neuron`/`Layer`/`MLP` + `parameters()` yazıldı, 4 örneklik veri setiyle 30 adım eğitildi, loss 2.1125 → 0.0169. Deadline'da (29 Ağustos) elde olanla teslim edilmişti; bu maddeler sonradan kapatıldı.
