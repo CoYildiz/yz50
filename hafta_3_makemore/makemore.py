@@ -145,11 +145,27 @@ for w in words:
 xs = torch.tensor(xs)
 ys = torch.tensor(ys)
 
+W = torch.randn((27, 27), generator=g, requires_grad=True)
 
-xenc = F.one_hot(xs, num_classes=27).float()
-W = torch.randn((27, 27), generator=g)
-logits = xenc @ W # matrix mult
-count = logits.exp() # exponentiate for positive values
-prob = count / count.sum(dim=1, keepdim=True) # normalize to get probabilities(softmax)
-loss = -prob[torch.arange(len(prob)), ys].log().mean()
-print(f"loss: {loss}")
+for i in range(50):
+    xenc = F.one_hot(xs, num_classes=27).float()
+    logits = xenc @ W # matrix mult
+    count = logits.exp() # exponentiate for positive values
+    prob = count / count.sum(dim=1, keepdim=True) # normalize to get probabilities(softmax)
+    loss = -prob[torch.arange(len(prob)), ys].log().mean()
+    # backward pass
+    W.grad = None # set to zero the gradient
+    loss.backward()
+
+    with torch.no_grad():
+        W += -50 * W.grad
+
+    xenc = F.one_hot(xs, num_classes=27).float()
+    logits = xenc @ W # matrix mult
+    count = logits.exp() # exponentiate for positive values
+    prob = count / count.sum(dim=1, keepdim=True) # normalize to get probabilities(softmax)
+    loss = -prob[torch.arange(len(prob)), ys].log().mean()
+
+    print(f"loss: {loss}")
+
+# 2.50 = loss for 50 iterations
