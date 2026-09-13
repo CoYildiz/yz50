@@ -1,5 +1,9 @@
+import math
+
 import torch
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
+
 
 with open("names.txt") as f:
     lines = f.readlines()
@@ -62,7 +66,7 @@ for i in range(27):
     for j in range(27):
         chstr = itos[i] + itos[j]
         plt.text(j, i, chstr, ha="center", va="bottom", color="black")
-        plt.text(j, i, N[i, j].item(), ha="center", va="top", color="gray")
+        plt.text(j, i, N[i, j].item(), ha="center", va="top", color="blue")
 plt.axis("off")
 plt.savefig("output/N_matrix.png")
 
@@ -79,8 +83,10 @@ plt.savefig("output/N_matrix.png")
 # torch.multinomial(p, num_samples=20, replacement=True, generator=g)
 
 # we added 1 to N to avoid zero probabilities
+# it is called Laplace smoothing
 P = (N+1).float()
 P /= P.sum(1, keepdim = True)
+
 
 g = torch.Generator().manual_seed(2147483647)
 
@@ -117,21 +123,33 @@ print(f"log_likelihood: {log_likelihood}")
 # negative log likelihood because we are maximizing log likelihood
 nll = -log_likelihood
 print(f"nll: {nll}")
-print(f"average nnl: {nll / n}")
+# perplexity i guess ? look after that ??????
+# ??????????
+# ?????????
+# ?????????
+# ?????????? CHECK OUT UNDER
+print(f"perpelexity: {math.exp(nll/n)}") # in literature NLL is nll/n, avarage nll
+print(f"average nll: {nll / n}")
 
+# create the training set of bigrams (x,y)
+xs, ys = [], [] # int,int
 
-# create the training set of bigrams
-
-xs, ys = [], []
-for w in words[:1]:
+for w in words:
     chs = ["."] + list(w) + ["."]
     for ch1, ch2 in zip(chs, chs[1:]):
         ix1 = stoi[ch1]
         ix2 = stoi[ch2]
-        print(f"{ch1}{ch2}")
         xs.append(ix1)
         ys.append(ix2)
 
 xs = torch.tensor(xs)
 ys = torch.tensor(ys)
-print(xs, ys)
+
+
+xenc = F.one_hot(xs, num_classes=27).float()
+W = torch.randn((27, 27), generator=g)
+logits = xenc @ W # matrix mult
+count = logits.exp() # exponentiate for positive values
+prob = count / count.sum(dim=1, keepdim=True) # normalize to get probabilities(softmax)
+loss = -prob[torch.arange(len(prob)), ys].log().mean()
+print(f"loss: {loss}")
