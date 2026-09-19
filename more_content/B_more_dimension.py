@@ -7,16 +7,39 @@ import seaborn as sns
 
 # Import the dataset
 x1, x2, x3, y = np.loadtxt("data/pizza_3_vars.txt", skiprows=1, unpack=True)
+# The first column is all ones: it is a fake input whose value is always 1,
+# so w[0] is multiplied by 1 for every example -> w[0] IS the bias.
+X = np.column_stack((np.ones(x1.size), x1, x2, x3))
+Y = y.reshape(-1,1)
 
-# These weights came out of the training phase
-w = np.array([-3.98230894, 0.37333539, 1.69202346])
+def predict(X, w):
+    return np.matmul(X, w)
 
-# Plot the axes
+def loss(X, Y, w):
+    return np.average((predict(X, w) - Y) ** 2)
+
+def gradient(X, Y, w):
+    return 2 * np.matmul(X.T, (predict(X, w) - Y)/ X.shape[0])
+
+
+def train(X, Y, iterations, lr):
+    w = np.zeros((X.shape[1], 1))
+    for i in range(iterations):
+        print("Iteration %4d => Loss: %.20f" % (i, loss(X, Y, w)))
+        w -= gradient(X, Y, w) * lr
+    return w
+
+w = train(X, Y, iterations=50000, lr=0.001)
+print("bias (w[0]): %.4f" % w[0])
+print("weights     :", w[1:].ravel())
+
+# Plot AFTER training, so the plane uses the learned weights.
+# x1 = Reservations, x2 = Temperature (see the column order in pizza_3_vars.txt).
 sns.set(rc={"axes.facecolor": "white", "figure.facecolor": "white"})
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.set_xlabel("Temperature", labelpad=15, fontsize=15)
-ax.set_ylabel("Reservations", labelpad=15, fontsize=15)
+ax.set_xlabel("Reservations", labelpad=15, fontsize=15)
+ax.set_ylabel("Temperature", labelpad=15, fontsize=15)
 ax.set_zlabel("Pizzas", labelpad=5, fontsize=15)
 
 # Plot the data points
