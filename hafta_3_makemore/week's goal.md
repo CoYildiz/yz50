@@ -19,7 +19,7 @@
 - [x] Bigram'ları önce Python dictionary, sonra 27x27 torch tensor'da say; tabloyu görselleştir
 - [x] Sayım tablosunu satır satır olasılığa çevir (`keepdim=True`), modelden yeni isimler örnekle
 - [x] Negative log likelihood'u hesapla *(smoothing henüz eklenmedi)*
-- [ ] Aynı modeli tek katmanlı sinir ağıyla kur: one-hot, 27x27 weight, softmax, NLL, gradient descent
+- [x] Aynı modeli tek katmanlı sinir ağıyla kur: one-hot, 27x27 weight, softmax, NLL, gradient descent
 - [ ] Türkçe isim listesi bul/temizle, alfabeyi ç/ğ/ı/ö/ş/ü ile genişlet, iki modeli de koştur
 - [ ] *(opsiyonel)* Trigram'a çevir, train/dev/test böl, bigram ile karşılaştır
 
@@ -37,4 +37,13 @@
 - `P.sum(1)` hepsi 1, `P.sum(0)` değil — satır bazında normalize edildiğinin kanıtı
 - Tüm veri kümesi NLL = 2.4540
 
-**Durum:** Görev 1-3 tamamlandı (Görev 3'te smoothing eksik). Görev 4'e başlandı — eğitim seti (`xs`, `ys`) kuruluyor.
+**Durum (2026-09-20 güncellendi):** Görev 1-4 tamamlandı. Görev 4, 13 Eylül'de yazıldı
+(`8af6389`): `xs`/`ys` eğitim seti, `F.one_hot` ile 27x27 girdi, `W` üzerinden logits, satır bazında
+normalize ile softmax, ortalama NLL ve gradient descent döngüsü — loss 2.50 civarına indi, sayım
+modelinin 2.4540'ına yaklaştı. Bu, iki modelin aynı şeyi öğrendiğinin kanıtı.
+
+**Açık kalanlar:**
+- Görev 3'ün smoothing kısmı hiç eklenmedi (`N + 1` yerine farklı sahte sayımların loss'a etkisi)
+- Görev 5 (Türkçe isim listesi) **yapılmadı** — `makemore.py` yalnızca İngilizce `names.txt` ile
+  çalışıyor, alfabe Türkçe karakterlerle genişletilmedi. Bu madde Hafta 4 Görev 7 olarak da açık
+- Görev 6 opsiyoneldi, açılmadı
