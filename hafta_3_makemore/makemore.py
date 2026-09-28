@@ -169,3 +169,5 @@ for i in range(50):
     print(f"loss: {loss}")
 
 # 2.50 = loss for 50 iterations
+
+# 6 saat 10 dakika
